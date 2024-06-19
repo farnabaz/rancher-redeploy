@@ -2,14 +2,14 @@
 # GitHub Action
 #-----------------------------------------------------------------------------------------------------------------------
 
-name: Rancher v2 Workload Redeploy
+name: Rancher v2 Workload Redeploy (updated)
 description: An action for redeploying Rancher v2 workloads
 author: Christopher Case
 branding:
     icon: terminal
     color: blue
 runs:
-    using: node12
+    using: node20
     main: deploy.js
 
 #-----------------------------------------------------------------------------------------------------------------------
