@@ -65,7 +65,7 @@ async function main()
 
     // Step 1: Get the workload
     const data = await http.get(workloadURL, { headers });
-
+    console.log(data)
     // Step 2: Modify the workload
     const workload = {
         ...data,
