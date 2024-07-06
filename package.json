@@ -1,6 +1,6 @@
 {
   "name": "rancher-redeploy",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A simple script to redeploy a rancher workload.",
   "main": "deploy.js",
   "scripts": {
