@@ -4,7 +4,7 @@
 
 name: Rancher v2 Workload Redeploy (updated)
 description: An action for redeploying Rancher v2 workloads
-author: Christopher Case
+author: Ahad Birang
 branding:
     icon: terminal
     color: blue

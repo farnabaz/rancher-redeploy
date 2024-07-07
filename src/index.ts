@@ -1,101 +1,77 @@
-// ---------------------------------------------------------------------------------------------------------------------
-// Rancher Redeploy Script
-// ---------------------------------------------------------------------------------------------------------------------
-
-import { $fetch } from 'ofetch'
-
-// ---------------------------------------------------------------------------------------------------------------------
+import { createFetch } from 'ofetch'
 
 // Read these from ENV
 const {
-    RANCHER_BEARER_TOKEN,
-    RANCHER_CLUSTER_ID,
-    RANCHER_NAMESPACE,
-    RANCHER_PROJECT_ID,
-    RANCHER_URL,
-    RANCHER_WORKLOAD,
-    IMAGE_TAG
-} = process.env;
+  RANCHER_BEARER_TOKEN,
+  RANCHER_CLUSTER_ID,
+  RANCHER_NAMESPACE,
+  RANCHER_PROJECT_ID,
+  RANCHER_URL,
+  RANCHER_WORKLOAD,
+  IMAGE_TAG
+} = process.env
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Check for required environment variables
 // ---------------------------------------------------------------------------------------------------------------------
 
 const required = [
-    'RANCHER_BEARER_TOKEN',
-    'RANCHER_CLUSTER_ID',
-    'RANCHER_NAMESPACE',
-    'RANCHER_PROJECT_ID',
-    'RANCHER_URL',
-    'RANCHER_WORKLOAD'
+  'RANCHER_BEARER_TOKEN',
+  'RANCHER_CLUSTER_ID',
+  'RANCHER_NAMESPACE',
+  'RANCHER_PROJECT_ID',
+  'RANCHER_URL',
+  'RANCHER_WORKLOAD'
 ]
 
-const missing = required.filter((key) => !process.env[key]);
-if(missing.length > 0)
-{
-    throw new Error(`Required environment variables missing: ${ missing.join(', ') }`);
+const missing = required.filter(key => !process.env[key])
+if (missing.length > 0) {
+  throw new Error(`Required environment variables missing: ${missing.join(', ')}`)
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
+const $fetch = createFetch({
+  defaults: {
+    baseURL: RANCHER_URL,
+    headers: {
+      authorization: `Bearer ${RANCHER_BEARER_TOKEN}`
+    },
+    timeout: 10_000
+  }
+})
 
-const headers = {
-    Authorization: `Bearer ${ RANCHER_BEARER_TOKEN }`
-}
+async function main() {
+  console.log('Redeploying workload...')
 
-const workloadURL = `${RANCHER_URL}//v3/project/${RANCHER_CLUSTER_ID}:${RANCHER_PROJECT_ID}/workloads/deployment:${RANCHER_NAMESPACE}:${RANCHER_WORKLOAD}`
+  const workloadURL = `/v3/project/${RANCHER_CLUSTER_ID}:${RANCHER_PROJECT_ID}/workloads/deployment:${RANCHER_NAMESPACE}:${RANCHER_WORKLOAD}`
 
-// ---------------------------------------------------------------------------------------------------------------------
+  // Step 1: Get the workload
+  const data = await $fetch(workloadURL)
 
-function buildImage(image: string)
-{
-    if(IMAGE_TAG)
-    {
-        const parts = image.split(':');
-        return `${ parts[0] }:${ IMAGE_TAG }`
+  // Step 3: Push the modified workload
+  await $fetch(workloadURL, {
+    method: 'PUT',
+    body: {
+      ...data,
+      annotations: {
+        ...data.annotations,
+        'cattle.io/timestamp': new Date().toISOString()
+      },
+      containers: [
+        {
+          ...data.containers[0],
+          image: IMAGE_TAG ? `${data.containers[0].image.split(':')[0]}:${IMAGE_TAG}` : data.containers[0].image
+        }
+      ]
     }
-
-    return image;
+  })
 }
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-async function main()
-{
-    console.log('Redeploying workload...')
-
-    // Step 1: Get the workload
-    const data = await $fetch(workloadURL, { headers });
-
-    // Step 2: Modify the workload
-    const workload = {
-        ...data,
-        annotations: {
-            ...data.annotations,
-            'cattle.io/timestamp': new Date().toISOString()
-        },
-        containers: [{
-            ...data.containers[0],
-            image: buildImage(data.containers[0].image)
-        }]
-    };
-
-    // Step 3: Push the modified workload
-    await $fetch(workloadURL, { method: 'PUT', body: workload, headers, timeout: 10_000 });
-}
-
-
-// ---------------------------------------------------------------------------------------------------------------------
 
 main()
-    .then(() =>
-    {
-        console.log('Workload successfully deployed.')
-        process.exit(0);
-    })
-    .catch((error) =>
-    {
-        console.error(error.message);
-        process.exit(1);
-    });
-
-// ---------------------------------------------------------------------------------------------------------------------
+  .then(() => {
+    console.log('Workload successfully deployed.')
+    process.exit(0)
+  })
+  .catch((error) => {
+    console.error(error.message)
+    process.exit(1)
+  })

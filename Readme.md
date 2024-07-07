@@ -1,11 +1,7 @@
 # Rancher v2 Workload Redeploy
 
-This action is heavily inspired by [th0th/rancher-redeploy-workload][]. Unfortunately, it wouldn't work on my 
-rancher install, but recreating it in Node.js was trivial, and it just seems to work. I also added the ability to 
-replace the image tag currently being deployed, since I have a use case for that. Huge props to that project for the 
-methodology and inspiration.
+`rancher-redeploy` is a GitHub action (and docker image) that redeploys kubernetes workloads using Rancher's API.
 
-[th0th/rancher-redeploy-workload]: https://github.com/th0th/rancher-redeploy-workload
 
 ## Basic Usage
 
@@ -68,3 +64,9 @@ Copy that value (starting with `token-`) as the `RANCHER_BEARER_TOKEN`.
 ```
 
 (Remember when copying this that `IMAGE_TAG` is optional, and you may not want to include it.)
+
+
+## Credits
+
+- [SkewedAspect/rancher-redeploy](https://github.com/SkewedAspect/rancher-redeploy)
+- [th0th/rancher-redeploy-workload](https://github.com/th0th/rancher-redeploy-workload)
